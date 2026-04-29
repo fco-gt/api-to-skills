@@ -5,7 +5,7 @@ import ora from 'ora';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import path from 'node:path';
-import { RawEndpoint, EnrichedEndpoint, IngestorResult } from './types/index.js';
+import type { EnrichedEndpoint, IngestorResult } from './types/index.js';
 import { logger } from './utils/logger.js';
 import { pathExists } from './utils/file.js';
 import { ingestOpenApi, ingestUrl, ingestMarkdown } from './ingestors/index.js';
@@ -57,22 +57,21 @@ program
 
         if (result.endpoints.length === 0) {
           logger.warn('No endpoints found. Nothing to generate.');
-          if (result.metadata.message) {
-            logger.info(`Hint: ${result.metadata.message}`);
-          }
+          if (result.metadata.message && typeof result.metadata.message === 'string') {
+          logger.info(`Hint: ${result.metadata.message}`);
+        }
           process.exit(0);
         }
 
         // ── Phase 3: Enrich ─────────────────────────────────────────────
-        let enriched: EnrichedEndpoint[] = result.endpoints as unknown as EnrichedEndpoint[];
+        let enriched: EnrichedEndpoint[];
 
         if (opts.enrich) {
           const enrichSpinner = ora('Enriching endpoints with Claude...').start();
           enriched = await enrichWithLlm(result.endpoints);
           enrichSpinner.succeed(`Enriched ${chalk.bold(String(enriched.length))} endpoints`);
         } else {
-          // Still need to cast to EnrichedEndpoint with defaults
-          enriched = result.endpoints.map((ep: RawEndpoint) => ({
+          enriched = result.endpoints.map((ep) => ({
             ...ep,
             semanticDescription: `${ep.method} ${ep.path}. ${ep.summary ?? ''}`,
             usageExample: `Call ${ep.method} ${ep.path} with the required parameters.`,
@@ -86,14 +85,15 @@ program
           // Group for display
           const groups = new Map<string, EnrichedEndpoint[]>();
           for (const ep of enriched) {
-            const key = ep.tags?.[0] ?? ep.skillName ?? 'untagged';
+            const key = ep.tags?.[0] ?? ep.skillName;
             if (!groups.has(key)) groups.set(key, []);
-            groups.get(key)!.push(ep);
+            const group = groups.get(key);
+            if (group) group.push(ep);
           }
           for (const [group, eps] of groups) {
             console.log(
               chalk.cyan(
-                `\n  📄 ${group}.skill.ts (${eps.length} tool${eps.length > 1 ? 's' : ''})`,
+                `\n  📄 ${group}.skill.ts (${String(eps.length)} tool${eps.length > 1 ? 's' : ''})`,
               ),
             );
             for (const ep of eps) {
@@ -104,7 +104,7 @@ program
           }
           console.log('\n');
           logger.success(
-            `Dry run complete. ${enriched.length} endpoints across ${groups.size} skill(s).`,
+            `Dry run complete. ${String(enriched.length)} endpoints across ${String(groups.size)} skill(s).`,
           );
           return;
         }
