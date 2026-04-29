@@ -31,7 +31,7 @@ export async function ingestUrl(baseUrl: string): Promise<IngestorResult> {
       const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
       if (response.ok) {
         logger.success(`Found OpenAPI spec at ${url}`);
-        return ingestOpenApi(url);
+        return await ingestOpenApi(url);
       }
     } catch {
       // Continue trying next path

@@ -19,7 +19,7 @@ export async function ingestMarkdown(source: string): Promise<IngestorResult> {
 
   // Extract from code blocks and paragraphs
   for (const token of tokens) {
-    if (token.type === 'code' && token.type === 'code') {
+    if (token.type === 'code') {
       const codeToken = token as Tokens.Code;
       endpoints.push(...extractEndpointsFromText(codeToken.text, codeToken.lang ?? ''));
     } else if (token.type === 'heading') {
