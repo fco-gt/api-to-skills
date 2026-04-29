@@ -12,9 +12,14 @@ const ParameterSchema = z.object({
 const ResponseSchema = z.object({
   statusCode: z.string().min(1),
   description: z.string().default(''),
-  content: z.record(z.string(), z.object({
-    schema: z.record(z.unknown()).optional(),
-  })).optional(),
+  content: z
+    .record(
+      z.string(),
+      z.object({
+        schema: z.record(z.unknown()).optional(),
+      }),
+    )
+    .optional(),
 });
 
 const RawEndpointSchema = z.object({
@@ -23,13 +28,20 @@ const RawEndpointSchema = z.object({
   summary: z.string().optional(),
   description: z.string().optional(),
   parameters: z.array(ParameterSchema).default([]),
-  requestBody: z.object({
-    description: z.string().optional(),
-    required: z.boolean().optional(),
-    content: z.record(z.string(), z.object({
-      schema: z.record(z.unknown()).optional(),
-    })).optional(),
-  }).optional(),
+  requestBody: z
+    .object({
+      description: z.string().optional(),
+      required: z.boolean().optional(),
+      content: z
+        .record(
+          z.string(),
+          z.object({
+            schema: z.record(z.unknown()).optional(),
+          }),
+        )
+        .optional(),
+    })
+    .optional(),
   responses: z.array(ResponseSchema).default([]),
   tags: z.array(z.string()).optional(),
 });

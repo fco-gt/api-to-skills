@@ -21,7 +21,9 @@ function buildUserPrompt(endpoint: RawEndpoint): string {
   if (endpoint.parameters.length) {
     parts.push('Parameters:');
     for (const p of endpoint.parameters) {
-      parts.push(`  - ${p.name} (${p.in})${p.required ? ' [required]' : ''}: ${p.description ?? ''}`);
+      parts.push(
+        `  - ${p.name} (${p.in})${p.required ? ' [required]' : ''}: ${p.description ?? ''}`,
+      );
     }
   }
   if (endpoint.requestBody) {
@@ -36,10 +38,7 @@ function buildUserPrompt(endpoint: RawEndpoint): string {
   return parts.join('\n');
 }
 
-async function enrichSingle(
-  client: Anthropic,
-  endpoint: RawEndpoint,
-): Promise<EnrichedEndpoint> {
+async function enrichSingle(client: Anthropic, endpoint: RawEndpoint): Promise<EnrichedEndpoint> {
   const prompt = buildUserPrompt(endpoint);
 
   const message = await client.messages.create({
@@ -56,7 +55,10 @@ async function enrichSingle(
     .trim();
 
   // Try to parse JSON from the response (might have markdown code fences)
-  const cleaned = text.replace(/^```(?:json)?\n?/i, '').replace(/\n?```$/i, '').trim();
+  const cleaned = text
+    .replace(/^```(?:json)?\n?/i, '')
+    .replace(/\n?```$/i, '')
+    .trim();
 
   try {
     const parsed = JSON.parse(cleaned) as {
@@ -66,12 +68,17 @@ async function enrichSingle(
     };
     return {
       ...endpoint,
-      semanticDescription: parsed.semanticDescription ?? `Endpoint ${endpoint.method} ${endpoint.path}`,
-      usageExample: parsed.usageExample ?? `Call ${endpoint.method} ${endpoint.path} with the required parameters.`,
+      semanticDescription:
+        parsed.semanticDescription ?? `Endpoint ${endpoint.method} ${endpoint.path}`,
+      usageExample:
+        parsed.usageExample ??
+        `Call ${endpoint.method} ${endpoint.path} with the required parameters.`,
       skillName: parsed.skillName ?? 'defaultSkill',
     };
   } catch {
-    logger.warn(`Failed to parse LLM response for ${endpoint.method} ${endpoint.path}, using defaults`);
+    logger.warn(
+      `Failed to parse LLM response for ${endpoint.method} ${endpoint.path}, using defaults`,
+    );
     return {
       ...endpoint,
       semanticDescription: `Endpoint ${endpoint.method} ${endpoint.path}. ${endpoint.summary ?? ''}`,
@@ -89,7 +96,9 @@ export async function enrichWithLlm(endpoints: RawEndpoint[]): Promise<EnrichedE
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
-    logger.warn('ANTHROPIC_API_KEY not set. Skipping LLM enrichment — endpoints will have default values.');
+    logger.warn(
+      'ANTHROPIC_API_KEY not set. Skipping LLM enrichment — endpoints will have default values.',
+    );
     return endpoints.map((ep) => ({
       ...ep,
       semanticDescription: `Endpoint ${ep.method} ${ep.path}. ${ep.summary ?? ''}`,

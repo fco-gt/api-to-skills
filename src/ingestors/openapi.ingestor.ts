@@ -1,13 +1,19 @@
 import OpenAPIParser from '@readme/openapi-parser';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { RawEndpoint, IngestorResult, Parameter, ResponseDefinition, RequestBody } from '../types/index.js';
+import type {
+  RawEndpoint,
+  IngestorResult,
+  Parameter,
+  ResponseDefinition,
+  RequestBody,
+} from '../types/index.js';
 import { validateEndpoints } from '../validators/endpoint.validation.js';
 
 /**
  * Parse an OpenAPI/Swagger spec (JSON or YAML) and extract all endpoints.
  */
 export async function ingestOpenApi(source: string): Promise<IngestorResult> {
-  const api = await OpenAPIParser.validate(source) as OpenAPIV3.Document;
+  const api = (await OpenAPIParser.validate(source)) as OpenAPIV3.Document;
 
   const endpoints: RawEndpoint[] = [];
 
@@ -27,10 +33,7 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
       const parameters: Parameter[] = [];
 
       // Merge path-level and operation-level parameters
-      const allParams = [
-        ...(pathItem.parameters ?? []),
-        ...(operation.parameters ?? []),
-      ];
+      const allParams = [...(pathItem.parameters ?? []), ...(operation.parameters ?? [])];
 
       for (const param of allParams) {
         // Handle $ref (OpenAPIParser resolves most, but be safe)
@@ -49,7 +52,9 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
       const requestBody: RequestBody | undefined = operation.requestBody
         ? (() => {
             const body = operation.requestBody as unknown as Record<string, unknown>;
-            const content = body.content as Record<string, { schema?: Record<string, unknown> }> | undefined;
+            const content = body.content as
+              | Record<string, { schema?: Record<string, unknown> }>
+              | undefined;
             return {
               description: String(body.description ?? ''),
               required: Boolean(body.required),
@@ -62,7 +67,9 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
       if (operation.responses) {
         for (const [status, resp] of Object.entries(operation.responses)) {
           const r = resp as unknown as Record<string, unknown>;
-          const content = r.content as Record<string, { schema?: Record<string, unknown> }> | undefined;
+          const content = r.content as
+            | Record<string, { schema?: Record<string, unknown> }>
+            | undefined;
           responses.push({
             statusCode: status,
             description: String(r.description ?? ''),
