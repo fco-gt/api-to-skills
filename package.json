@@ -12,6 +12,8 @@
     "dev": "tsx src/cli.ts",
     "test": "vitest",
     "lint": "eslint src/",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "start": "node dist/cli.js"
   },
   "keywords": [
