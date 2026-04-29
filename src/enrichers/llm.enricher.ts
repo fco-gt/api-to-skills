@@ -49,8 +49,8 @@ async function enrichSingle(client: Anthropic, endpoint: RawEndpoint): Promise<E
   });
 
   const text = message.content
-    .filter((block) => block.type === 'text')
-    .map((block) => (block as { type: 'text'; text: string }).text)
+    .filter((block): block is { type: 'text'; text: string } => block.type === 'text')
+    .map((block) => block.text)
     .join('\n')
     .trim();
 
@@ -69,11 +69,11 @@ async function enrichSingle(client: Anthropic, endpoint: RawEndpoint): Promise<E
     return {
       ...endpoint,
       semanticDescription:
-        parsed.semanticDescription ?? `Endpoint ${endpoint.method} ${endpoint.path}`,
+        parsed.semanticDescription || `Endpoint ${endpoint.method} ${endpoint.path}`,
       usageExample:
-        parsed.usageExample ??
+        parsed.usageExample ||
         `Call ${endpoint.method} ${endpoint.path} with the required parameters.`,
-      skillName: parsed.skillName ?? 'defaultSkill',
+      skillName: parsed.skillName || 'defaultSkill',
     };
   } catch {
     logger.warn(
@@ -81,7 +81,7 @@ async function enrichSingle(client: Anthropic, endpoint: RawEndpoint): Promise<E
     );
     return {
       ...endpoint,
-      semanticDescription: `Endpoint ${endpoint.method} ${endpoint.path}. ${endpoint.summary ?? ''}`,
+      semanticDescription: `Endpoint ${endpoint.method} ${endpoint.path}. ${endpoint.summary || ''}`,
       usageExample: `Call ${endpoint.method} ${endpoint.path} with the required parameters.`,
       skillName: 'defaultSkill',
     };
@@ -101,9 +101,9 @@ export async function enrichWithLlm(endpoints: RawEndpoint[]): Promise<EnrichedE
     );
     return endpoints.map((ep) => ({
       ...ep,
-      semanticDescription: `Endpoint ${ep.method} ${ep.path}. ${ep.summary ?? ''}`,
+      semanticDescription: `Endpoint ${ep.method} ${ep.path}. ${ep.summary || ''}`,
       usageExample: `Call ${ep.method} ${ep.path} with the required parameters.`,
-      skillName: ep.tags?.[0]?.replace(/\s+/g, '_') ?? 'defaultSkill',
+      skillName: ep.tags?.[0]?.replace(/\s+/g, '_') || 'defaultSkill',
     }));
   }
 
@@ -112,7 +112,7 @@ export async function enrichWithLlm(endpoints: RawEndpoint[]): Promise<EnrichedE
 
   for (let i = 0; i < endpoints.length; i++) {
     const ep = endpoints[i];
-    logger.info(`Enriching [${i + 1}/${endpoints.length}]: ${ep.method} ${ep.path}...`);
+    logger.info(`Enriching [${String(i + 1)}/${String(endpoints.length)}]: ${ep.method} ${ep.path}...`);
     try {
       const result = await enrichSingle(client, ep);
       enriched.push(result);
