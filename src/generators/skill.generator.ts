@@ -64,11 +64,12 @@ function groupEndpoints(endpoints: EnrichedEndpoint[]): Map<string, EnrichedEndp
 
   for (const ep of endpoints) {
     // Prefer tags, fall back to skillName
-    const groupKey = ep.tags?.[0] ?? ep.skillName ?? 'untagged';
+    const groupKey = ep.tags?.[0] ?? ep.skillName;
     if (!groups.has(groupKey)) {
       groups.set(groupKey, []);
     }
-    groups.get(groupKey)!.push(ep);
+    const group = groups.get(groupKey);
+    if (group) group.push(ep);
   }
 
   return groups;
@@ -84,13 +85,13 @@ export function generateSkillFile(endpoints: EnrichedEndpoint[], groupName: stri
   return `// Auto-generated skill file — do not edit manually
 // Generated at: ${new Date().toISOString()}
 // Group: ${groupName}
-// Endpoints: ${endpoints.length}
+// Endpoints: ${String(endpoints.length)}
 
 import type { ToolDefinition } from '../types/index.js';
 
 export const ${skillNameCamel}Skill = {
   name: "${groupName}",
-  description: "${endpoints[0]?.semanticDescription?.replace(/"/g, '\\"') ?? `Skill for ${groupName}`} — ${endpoints.length} tool(s)",
+  description: "${endpoints[0]?.semanticDescription?.replace(/"/g, '\\"') ?? `Skill for ${groupName}`} — ${String(endpoints.length)} tool(s)",
   version: "1.0.0",
   tools: ${toolsJson} as unknown as ToolDefinition[],
 } as const;
