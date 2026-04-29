@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+
+# TypeScript build output
+dist/
+build/
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.zed
+
+# Output of coverage test
+coverage*
+*.out
+*.prof
+*-func.txt
+
+# Temporary files
+tmp/
+temp/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Generated skills output
+.agents/
+skills/
+output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test cache
+.vitest/
