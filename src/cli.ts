@@ -58,8 +58,8 @@ program
         if (result.endpoints.length === 0) {
           logger.warn('No endpoints found. Nothing to generate.');
           if (result.metadata.message && typeof result.metadata.message === 'string') {
-          logger.info(`Hint: ${result.metadata.message}`);
-        }
+            logger.info(`Hint: ${result.metadata.message}`);
+          }
           process.exit(0);
         }
 

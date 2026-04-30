@@ -41,7 +41,10 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
             in: (typeof p.in === 'string' ? p.in : 'query') as unknown as Parameter['in'],
             required: Boolean(p.required),
             description: typeof p.description === 'string' ? p.description : '',
-            schema: typeof p.schema === 'object' && p.schema !== null ? (p.schema as Record<string, unknown>) : undefined,
+            schema:
+              typeof p.schema === 'object' && p.schema !== null
+                ? (p.schema as Record<string, unknown>)
+                : undefined,
           });
         }
       }
