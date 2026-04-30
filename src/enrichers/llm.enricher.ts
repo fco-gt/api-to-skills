@@ -112,7 +112,9 @@ export async function enrichWithLlm(endpoints: RawEndpoint[]): Promise<EnrichedE
 
   for (let i = 0; i < endpoints.length; i++) {
     const ep = endpoints[i];
-    logger.info(`Enriching [${String(i + 1)}/${String(endpoints.length)}]: ${ep.method} ${ep.path}...`);
+    logger.info(
+      `Enriching [${String(i + 1)}/${String(endpoints.length)}]: ${ep.method} ${ep.path}...`,
+    );
     try {
       const result = await enrichSingle(client, ep);
       enriched.push(result);
