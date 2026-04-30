@@ -38,7 +38,7 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
           const p = param as unknown as Record<string, unknown>;
           parameters.push({
             name: typeof p.name === 'string' ? p.name : '',
-            in: typeof p.in === 'string' ? p.in : 'query',
+            in: (typeof p.in === 'string' ? p.in : 'query') as unknown as Parameter['in'],
             required: Boolean(p.required),
             description: typeof p.description === 'string' ? p.description : '',
             schema: typeof p.schema === 'object' && p.schema !== null ? (p.schema as Record<string, unknown>) : undefined,
