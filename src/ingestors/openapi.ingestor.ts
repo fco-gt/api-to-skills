@@ -16,10 +16,7 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
   const api = (await OpenAPIParser.validate(source)) as OpenAPIV3.Document;
 
   const endpoints: RawEndpoint[] = [];
-
-  if (!api.paths) {
-    return { source, endpoints: [], metadata: { title: api.info?.title ?? 'Unknown API' } };
-  }
+  const title = typeof api.info.title === 'string' ? api.info.title : 'Unknown API';
 
   for (const [path, pathItem] of Object.entries(api.paths)) {
     if (!pathItem) continue;
@@ -40,11 +37,11 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
         if (typeof param === 'object' && 'name' in param && 'in' in param) {
           const p = param as unknown as Record<string, unknown>;
           parameters.push({
-            name: String(p.name ?? ''),
-            in: String(p.in ?? 'query') as Parameter['in'],
+            name: typeof p.name === 'string' ? p.name : '',
+            in: typeof p.in === 'string' ? p.in : 'query',
             required: Boolean(p.required),
-            description: String(p.description ?? ''),
-            schema: (p.schema as Record<string, unknown>) ?? undefined,
+            description: typeof p.description === 'string' ? p.description : '',
+            schema: typeof p.schema === 'object' && p.schema !== null ? (p.schema as Record<string, unknown>) : undefined,
           });
         }
       }
@@ -56,7 +53,7 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
               | Record<string, { schema?: Record<string, unknown> }>
               | undefined;
             return {
-              description: String(body.description ?? ''),
+              description: typeof body.description === 'string' ? body.description : '',
               required: Boolean(body.required),
               content,
             };
@@ -64,18 +61,16 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
         : undefined;
 
       const responses: ResponseDefinition[] = [];
-      if (operation.responses) {
-        for (const [status, resp] of Object.entries(operation.responses)) {
-          const r = resp as unknown as Record<string, unknown>;
-          const content = r.content as
-            | Record<string, { schema?: Record<string, unknown> }>
-            | undefined;
-          responses.push({
-            statusCode: status,
-            description: String(r.description ?? ''),
-            content,
-          });
-        }
+      for (const [status, resp] of Object.entries(operation.responses)) {
+        const r = resp as unknown as Record<string, unknown>;
+        const content = r.content as
+          | Record<string, { schema?: Record<string, unknown> }>
+          | undefined;
+        responses.push({
+          statusCode: status,
+          description: typeof r.description === 'string' ? r.description : '',
+          content,
+        });
       }
 
       const tags = Array.isArray(operation.tags) ? operation.tags.map(String) : undefined;
@@ -83,8 +78,8 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
       endpoints.push({
         method: method.toUpperCase(),
         path,
-        summary: operation.summary ? String(operation.summary) : undefined,
-        description: operation.description ? String(operation.description) : undefined,
+        summary: typeof operation.summary === 'string' ? operation.summary : undefined,
+        description: typeof operation.description === 'string' ? operation.description : undefined,
         parameters,
         requestBody,
         responses,
@@ -99,8 +94,8 @@ export async function ingestOpenApi(source: string): Promise<IngestorResult> {
     source,
     endpoints: valid,
     metadata: {
-      title: api.info?.title ?? 'Unknown API',
-      version: api.info?.version ?? 'unknown',
+      title,
+      version: typeof api.info.version === 'string' ? api.info.version : 'unknown',
       totalEndpoints: valid.length,
     },
   };
